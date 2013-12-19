@@ -1,0 +1,32 @@
+{application, %APP_NAME%,
+	[{description, "HTTP Proxy"},
+		{vsn, "%APP_VERSION%"},
+		{modules, [http_proxy,
+				http_proxy_app,
+				http_proxy_sup,
+				http_proxy_ua_sup,
+				http_proxy_ua_port_sup,
+				http_proxy_ua_accept_pool_sup,
+				http_proxy_ua_accept_sup,
+				http_proxy_ua_connect_sup,
+				http_proxy_ua_listen_server,
+				http_proxy_ua_accept_server,
+				http_proxy_ua_connect_fsm,
+				http_proxy_origin_pool_sup,
+				http_proxy_origin_server_sup,
+				http_proxy_origin_connect_sup,
+				http_proxy_origin_server,
+				http_proxy_origin_connect_fsm,
+				http_proxy_util]},
+		{registered, [http_proxy_sup, http_proxy_origin_pool_sup]},
+		{applications, [kernel, stdlib]},
+		{env, [{proxy, []}, {origin, [{pool_size, 1}]}]},
+				% {proxy, ProxySpecs}
+				% ProxySpecs = [{Port, [ProxyOption]}]
+				% 		Port :: non_neg_integer(),
+				%		ProxyOption :: http_proxy:http_proxy_option()
+				% 			| gen_tcp:listen_option(),
+				% {origin, [OriginOption]}
+				%		OriginOption :: http_proxy:http_origin_option()
+				% 			| gen_tcp:connect_option(),
+		{mod, {http_proxy_app, []}}]}.

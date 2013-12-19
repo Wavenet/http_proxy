@@ -1,0 +1,53 @@
+@author Vance Shipley <vance@wavenet.lk>
+@copyright 2013 Wavenet International (Pvt) Ltd
+@version %VERSION%
+@title %DESCRIPTION%
+@doc This application implements an HTTP proxy.
+
+==Introduction==
+An HTTP proxy forwards requests from clients to a origin servers,
+possibly caching results and resources for later direct response
+to clients.
+
+==Operation==
+An instance of the HTTP proxy service may be started with:
+```
+	1> {ok, HttpProxyService} = http_proxy:start(3128, []).
+	{ok,<0.51.0>}
+'''
+An HTTP proxy service may be stopped with:
+```
+	2> http_proxy:close(HttpProxyService).
+	ok
+'''
+
+==Supervision==
+
+The supervision heirachy is depicted in
+<a href="supervision.png">Figure 1-1</a>.
+
+<img alt="supervision heirachy" src="supervision.png" /><br />
+<a href="supervision.png">Figure 1-1</a>
+
+==Messaging==
+
+The messaging is depicted in
+<a href="messaging.png">Figure 1-2</a>.
+
+<img alt="message passing" src="messaging.png" /><br />
+<a href="messaging.png">Figure 1-2</a>
+
+==Configuration==
+The application is configured using the following environment variables:
+<dl>
+  <dt>proxy</dt>
+    <dd>Proxy specifications: <tt>[{Port, ProxyOptions}]</tt> (default: <tt>[]</tt>).<br />
+		<tt>Port</tt> is a <tt>non_neg_integer()</tt> for TCP port to listen on.<br />
+		<tt>ProxyOptions</tt> is a list of <tt>http_proxy_options()</tt> and
+		<tt>gen_tcp:listen_options()</tt>.</dd>
+  <dt>origin</dt>
+    <dd>Origin options: <tt>OriginOptions</tt>(default: <tt>[]</tt>).<br />
+		<tt>OriginOptions</tt> is a list of <tt>http_origin_options()</tt> and
+		<tt>gen_tcp:listen_options()</tt>.</dd>
+</dl>
+
