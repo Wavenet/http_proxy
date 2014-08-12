@@ -38,7 +38,7 @@
 		head = [] :: [http_field()],
 		body :: binary(),
 		expected_length :: pos_integer(),
-		queue = queue:new() :: queue(),
+		queue = queue:new() :: queue:queue(http_request()),
 		server = "" :: string(),
 		origin_fsm :: pid()}).
 
