@@ -24,7 +24,7 @@
 		scheme :: http | https,
 		host :: string(),
 		port :: pos_integer(),
-		path :: binary()}).
+		path :: binary() | '*'}).
 -type http_request() :: #request{}.
 
 -record(reply,

@@ -36,7 +36,7 @@
 		port :: pos_integer(),
 		version :: http_version(),
 		queue = queue:new() :: queue:queue({pid(), #request{},
-				[http_field()], binary() | [binary()]}),
+				[http_field()], binary() | [binary()]}) | {[], []},
 		method :: http_method(),
 		head = [] :: [http_field()],
 		body :: binary() | [binary()],
