@@ -30,7 +30,7 @@
 -record(reply,
 		{status_code :: pos_integer(),
 		status_string :: string(),
-		head :: [http_field()],
+		head :: [{http_field(), binary()}],
 		body :: binary() | [binary()]}).
 -type http_reply() :: #reply{}.
 
