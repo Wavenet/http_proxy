@@ -18,7 +18,7 @@ init_per_suite(Config) ->
 	ok = file:write_file(Path ++ ".html", HtmlContent),
 	PlainTextContent = ["Title: ", atom_to_list(?MODULE), [$\n],
 			"Reference: ", Reference],
-	ok = file:write_file(Path ++ ".txt", HtmlContent),
+	ok = file:write_file(Path ++ ".txt", PlainTextContent),
 	Config1 = [{content_uri, "/" ++ Reference}, {content_path, Path},
 			{html_uri, "/" ++ Reference ++ ".html"},
 			{html_content, lists:flatten(HtmlContent)},
@@ -108,7 +108,7 @@ accept_unsupported(Config) ->
 	ok = gen_tcp:send(Socket, ["GET ", URI, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],
 			"Accept: audio/vnd.dolby.heaac.1", [13, 10, 13, 10]]),
-	{ok, Content} = gen_tcp:recv(Socket, 0).
+	{ok, {http_response, _, 406, _}} = gen_tcp:recv(Socket, 0).
 
 noexist() ->
 	[{userdata, [{doc, "Test the GET method on nonexistent resource"}]}].

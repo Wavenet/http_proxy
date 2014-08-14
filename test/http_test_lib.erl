@@ -15,12 +15,12 @@ start_origin(Config, Options) ->
 			{server_root, PrivDir}, {document_root, PrivDir},
 			{mime_types, [{"html", "text/html"}, {"htm", "text/html"},
 					{"txt", "text/plain"}]} | Options]),
-	case lists:keyfind(modules, 1, Options) of
-		{modules, Modules} ->
-			ok = httpd_util:enable_debug([{exported_functions, Modules}]);
-		false ->
-			ok
-	end,
+	%case lists:keyfind(modules, 1, Options) of
+	%	{modules, Modules} ->
+	%		ok = httpd_util:enable_debug([{exported_functions, Modules}]);
+	%	false ->
+	%		ok
+	%end,
 	[{origin_pid, OriginPid} | Config].
 
 start_proxy(Config) ->
