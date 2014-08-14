@@ -23,6 +23,12 @@
 %% export the callback needed for supervisor behaviour
 -export([init/1]).
 
+-ifdef(debug).
+-define(DEBUG, {debug, [trace]}).
+-else.
+-define(DEBUG, ).
+-endif.
+
 %%----------------------------------------------------------------------
 %%  The supervisor callback
 %%----------------------------------------------------------------------
@@ -50,7 +56,7 @@ init(Args) ->
 %% @private
 %%
 server(StartMod, Args) ->
-	StartArgs = [StartMod, [self() | Args], [{debug, [trace]}]],
+	StartArgs = [StartMod, [self() | Args], [?DEBUG]],
 	StartFunc = {gen_server, start_link, StartArgs},
 	{StartMod, StartFunc, permanent, 4000, worker, [StartMod]}.
 

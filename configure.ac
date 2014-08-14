@@ -30,7 +30,7 @@ if test -z "${ERLCFLAGS}" ; then
 	ERLCFLAGS="-W -v"
 fi
 if test "x$enable_debug" == xyes ; then
-	ERLCFLAGS="$ERLCFLAGS +debug_info"
+	ERLCFLAGS="$ERLCFLAGS -Ddebug +debug_info"
 fi
 AC_ERLANG_SUBST_ROOT_DIR
 AC_ERLANG_SUBST_LIB_DIR

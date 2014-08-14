@@ -36,6 +36,12 @@
 		connect_sup :: pid(),
 		options :: string()}).
 
+-ifdef(debug).
+-define(DEBUG, {debug, [trace]}).
+-else.
+-define(DEBUG, ).
+-endif.
+
 %%----------------------------------------------------------------------
 %%  The http_proxy_origin_server gen_server callbacks
 %%----------------------------------------------------------------------
@@ -71,8 +77,8 @@ handle_call({_HttpRequest, _Head, _Body} = Request, {Pid, _Tag} = _From,
 		#state{connect_sup = ConnectSup, options = Options} = State) ->
 	% @todo return cached resource
 	% @todo discover existing connection
-	Result = supervisor:start_child(ConnectSup, [[Pid, Request, Options],
-		[{debug, [trace]}]]),
+	Result = supervisor:start_child(ConnectSup,
+			[[Pid, Request, Options], [?DEBUG]]),
 	{reply, Result, State}.
 
 -spec handle_cast(Request :: term(), State :: #state{}) ->

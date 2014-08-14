@@ -34,6 +34,12 @@
 		connect_sup :: pid(),
 		server :: string()}).
 
+-ifdef(debug).
+-define(DEBUG, {debug, [trace]}).
+-else.
+-define(DEBUG, ).
+-endif.
+
 %%----------------------------------------------------------------------
 %%  The http_proxy_ua_accept_server gen_server callbacks
 %%----------------------------------------------------------------------
@@ -134,7 +140,7 @@ code_change(_OldVsn, State, _Extra) ->
 start_connect(ConnectSocket, #state{connect_sup = ConnectSup,
 		server = Server} = State) ->
 	case supervisor:start_child(ConnectSup,
-			[[ConnectSocket, Server], [{debug, [trace]}]]) of
+			[[ConnectSocket, Server], [?DEBUG]]) of
 		{ok, Child} ->
 			case gen_tcp:controlling_process(ConnectSocket, Child) of
 				ok ->
