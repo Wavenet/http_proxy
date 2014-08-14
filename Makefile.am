@@ -7,8 +7,8 @@ SUBDIRS = ebin doc include
 check_DATA = .common_test_ok .dialyzer_ok
 
 .common_test_ok:
-	cd test && $(ERLANG_ROOT_DIR)/bin/ct_run \
-			-config sys.cfg -dir . -logdir log -pa ../ebin -erl_args +W w
+	$(ERLANG_ROOT_DIR)/bin/ct_run \
+			-dir test -config test/sys.cfg -logdir test/log -pa ebin -erl_args +W w
 
 .dialyzer_ok:
 	dialyzer --src src
