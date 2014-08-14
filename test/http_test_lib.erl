@@ -12,13 +12,15 @@ start_origin(Config, Options) ->
 	OriginPort = ct:get_config({http_origin, port}, 8080),
 	{ok, OriginPid} = inets:start(httpd,
 			[{server_name, ServerName}, {port, OriginPort},
-			{server_root, PrivDir}, {document_root, PrivDir} | Options]),
-	%case lists:keyfind(modules, 1, Options) of
-	%	{modules, Modules} ->
-	%		ok = httpd_util:enable_debug([{exported_functions, Modules}]);
-	%	false ->
-	%		ok
-	%end,
+			{server_root, PrivDir}, {document_root, PrivDir},
+			{mime_types, [{"html", "text/html"}, {"htm", "text/html"},
+					{"txt", "text/plain"}]} | Options]),
+	case lists:keyfind(modules, 1, Options) of
+		{modules, Modules} ->
+			ok = httpd_util:enable_debug([{exported_functions, Modules}]);
+		false ->
+			ok
+	end,
 	[{origin_pid, OriginPid} | Config].
 
 start_proxy(Config) ->

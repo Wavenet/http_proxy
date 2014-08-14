@@ -18,4 +18,5 @@ install-exec-hook:
 
 clean-local:
 	-rm test/*.beam
+	-rm -r test/log/*
 
