@@ -39,7 +39,7 @@ delete() ->
 
 delete(Config) ->
 	FileName = ?config(html_filename, Config),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["DELETE /", FileName, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10], [13, 10, 13, 10]]),
@@ -48,10 +48,10 @@ delete(Config) ->
 noexist() ->
 	[{userdata, [{doc, "Test the DELETE method on nonexistent resource"}]}].
 
-noexist(_Config) ->
+noexist(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	FileName = Reference ++ ".html",
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["DELETE /", FileName, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10], [13, 10, 13, 10]]),
@@ -60,10 +60,10 @@ noexist(_Config) ->
 nodir() ->
 	[{userdata, [{doc, "Test the DELETE method on nonexistent parent resource"}]}].
 
-nodir(_Config) ->
+nodir(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	FileName = Reference ++ ".html",
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["DELETE /bogus/", FileName, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10], [13, 10, 13, 10]]),

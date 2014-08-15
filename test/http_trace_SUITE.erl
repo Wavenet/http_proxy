@@ -28,8 +28,8 @@ all() ->
 proxy() ->
 	[{userdata, [{doc, "Test the TRACE method on the proxy server"}]}].
 
-proxy(_Config) ->
-	Socket = http_test_lib:connect(),
+proxy(Config) ->
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["TRACE / HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],
@@ -45,8 +45,8 @@ proxy(_Config) ->
 origin() ->
 	[{userdata, [{doc, "Test the TRACE method on the origin server"}]}].
 
-origin(_Config) ->
-	Socket = http_test_lib:connect(),
+origin(Config) ->
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["TRACE / HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],

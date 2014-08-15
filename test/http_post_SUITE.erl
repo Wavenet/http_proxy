@@ -29,12 +29,12 @@ all() ->
 post() ->
 	[{userdata, [{doc, "Test the POST method with simple html"}]}].
 
-post(_Config) ->
+post(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	HTML = ["<html><head><title>", atom_to_list(?MODULE),
 			"</title></head><body>", Reference, "</body></html>"],
 	Length = integer_to_list(lists:flatlength(HTML)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket,
 			["POST / HTTP/1.1", [13, 10],
@@ -50,12 +50,12 @@ post(_Config) ->
 noexist() ->
 	[{userdata, [{doc, "Test the POST method on nonexistent resource"}]}].
 
-noexist(_Config) ->
+noexist(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	HTML = ["<html><head><title>", atom_to_list(?MODULE),
 			"</title></head><body>", Reference, "</body></html>"],
 	Length = integer_to_list(lists:flatlength(HTML)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket,
 			["POST /bogus HTTP/1.1", [13, 10],

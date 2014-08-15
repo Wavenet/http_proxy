@@ -37,8 +37,8 @@ all() ->
 options_wildcard() ->
 	[{userdata, [{doc, "Test the OPTIONS method with a wildcard."}]}].
 
-options_wildcard(_Config) ->
-	Socket = http_test_lib:connect(),
+options_wildcard(Config) ->
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["OPTIONS * HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10, 13, 10]]),
@@ -51,7 +51,7 @@ options_no_forward() ->
 
 options_no_forward(Config) ->
 	FileName = ?config(html_filename, Config),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["OPTIONS /", FileName, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],
@@ -65,7 +65,7 @@ options_origin() ->
 
 options_origin(Config) ->
 	FileName = ?config(html_filename, Config),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["OPTIONS /", FileName, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],

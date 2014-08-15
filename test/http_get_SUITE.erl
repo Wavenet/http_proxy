@@ -46,7 +46,7 @@ get(Config) ->
 	URI = ?config(html_uri, Config),
 	Content = ?config(html_content, Config),
 	ContentLength = integer_to_list(length(Content)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["GET ", URI, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10, 13, 10]]),
@@ -65,7 +65,7 @@ accept_html(Config) ->
 	URI = ?config(content_uri, Config),
 	Content = ?config(html_content, Config),
 	ContentLength = integer_to_list(length(Content)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["GET ", URI, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],
@@ -85,7 +85,7 @@ accept_text(Config) ->
 	URI = ?config(content_uri, Config),
 	Content = ?config(text_content, Config),
 	ContentLength = integer_to_list(length(Content)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["GET ", URI, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],
@@ -103,7 +103,7 @@ accept_unsupported() ->
 
 accept_unsupported(Config) ->
 	URI = ?config(content_uri, Config),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["GET ", URI, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10],
@@ -113,10 +113,10 @@ accept_unsupported(Config) ->
 noexist() ->
 	[{userdata, [{doc, "Test the GET method on nonexistent resource"}]}].
 
-noexist(_Config) ->
+noexist(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	URI = "/" ++ Reference ++ ".html",
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["GET ", URI, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10, 13, 10]]),
@@ -125,10 +125,10 @@ noexist(_Config) ->
 nodir() ->
 	[{userdata, [{doc, "Test the GET method on nonexistent parent resource"}]}].
 
-nodir(_Config) ->
+nodir(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	FileName = Reference ++ ".html",
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket, ["GET /bogus/", FileName, " HTTP/1.1", [13, 10],
 			"Host: ", OriginHost, [13, 10, 13, 10]]),

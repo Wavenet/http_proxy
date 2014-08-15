@@ -29,12 +29,12 @@ all() ->
 put() ->
 	[{userdata, [{doc, "Test the PUT method with simple html"}]}].
 
-put(_Config) ->
+put(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	HTML = ["<html><head><title>", atom_to_list(?MODULE),
 			"</title></head><body>", Reference, "</body></html>"],
 	Length = integer_to_list(lists:flatlength(HTML)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket,
 			["PUT /", Reference, " HTTP/1.1", [13, 10],
@@ -49,12 +49,12 @@ put(_Config) ->
 nodir() ->
 	[{userdata, [{doc, "Test the PUT method on nonexistent parent resource"}]}].
 
-nodir(_Config) ->
+nodir(Config) ->
 	Reference = base64:encode_to_string(erlang:ref_to_list(make_ref())),
 	HTML = ["<html><head><title>", atom_to_list(?MODULE),
 			"</title></head><body>", Reference, "</body></html>"],
 	Length = integer_to_list(lists:flatlength(HTML)),
-	Socket = http_test_lib:connect(),
+	Socket = http_test_lib:connect(Config),
 	OriginHost = http_test_lib:origin_host(),
 	ok = gen_tcp:send(Socket,
 			["PUT /bogus/", Reference, " HTTP/1.1", [13, 10],

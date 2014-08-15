@@ -2,7 +2,7 @@
 
 -export([start_origin/2, start_proxy/1]).
 -export([stop_origin/1, stop_proxy/1]).
--export([connect/0, receive_headers/1, origin_host/0]).
+-export([connect/1, receive_headers/1, origin_host/0]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -15,18 +15,20 @@ start_origin(Config, Options) ->
 			{server_root, PrivDir}, {document_root, PrivDir},
 			{mime_types, [{"html", "text/html"}, {"htm", "text/html"},
 					{"txt", "text/plain"}]} | Options]),
-	%case lists:keyfind(modules, 1, Options) of
-	%	{modules, Modules} ->
-	%		ok = httpd_util:enable_debug([{exported_functions, Modules}]);
-	%	false ->
-	%		ok
-	%end,
+	case lists:keyfind(modules, 1, Options) of
+		{modules, Modules} ->
+			ok = httpd_util:enable_debug([{exported_functions, Modules}]);
+		false ->
+			ok
+	end,
 	[{origin_pid, OriginPid} | Config].
 
 start_proxy(Config) ->
+	ProxyAddress = ct:get_config({http_proxy, address}, "localhost"),
 	ProxyPort = ct:get_config({http_proxy, port}, 3128),
 	{ok, ProxyPid} = http_proxy:start(ProxyPort, []),
-	[{proxy_pid, ProxyPid} | Config].
+	[{proxy_address, ProxyAddress}, {proxy_port, ProxyPort},
+			{proxy_pid, ProxyPid} | Config].
 
 stop_origin(Config) ->
 	case ?config(origin_pid, Config) of
@@ -63,9 +65,9 @@ origin_host() ->
 			Hostname ++ ":" ++ integer_to_list(OriginPort)
 	end.
 
-connect() ->
-	ProxyAddress = ct:get_config({http_proxy, address}, "localhost"),
-	ProxyPort = ct:get_config({http_proxy, port}, 3128),
+connect(Config) ->
+	ProxyAddress = ?config(proxy_address, Config),
+	ProxyPort = ?config(proxy_port, Config),
 	{ok, Socket} = gen_tcp:connect(ProxyAddress, ProxyPort,
 			[{packet, http}, {active, false}]),
 	Socket.
