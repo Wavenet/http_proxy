@@ -67,7 +67,7 @@ init([Socket, Server] = _Args) when is_port(Socket) ->
 %% 	gen_fsm:send_event/2} in the <b>request</b> state.
 %% @private
 %%
-request(#reply{} = Event, StateData) ->
+request(Event, StateData) ->
 	handle_reply(Event, StateData).
 
 -spec head(Event :: timeout | term(), StateData :: #statedata{}) ->
@@ -409,5 +409,10 @@ handle_reply(#reply{status_code = StatusCode, status_string = StatusString,
 		head = Head, body = Body}, #statedata{version = Version} = StateData) ->
 	Response = http_proxy_util:encode_response(Version,
 			StatusCode, StatusString, Head, Body),
-	respond(Response, StateData).
+	respond(Response, StateData);
+handle_reply(Chunk, StateData) when is_binary(Chunk) ->
+	% @todo chunk-size
+	respond(Chunk, StateData);
+handle_reply(Trailer, StateData) when is_list(Trailer) ->
+	respond(http_proxy_util:encode_head(Trailer), StateData).
 

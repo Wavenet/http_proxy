@@ -40,7 +40,10 @@
 		method :: http_method(),
 		head = [] :: [http_field()],
 		body :: binary() | [binary()],
-		expected_length :: non_neg_integer(),
+		trailer = [] :: [http_field()],
+		expected_length :: non_neg_integer()
+				| {chunk, undefined | non_neg_integer()},
+		buf = <<>> :: binary(),
 		status_code :: pos_integer(),
 		status_string :: binary(),
 		clients :: [pid()],
@@ -215,6 +218,18 @@ handle_info({http, Socket, {http_response, HttpVersion,
 			status_string = HttpString, version = HttpVersion},
 	set_active(head, NewStateData);
 handle_info({http, Socket,
+		{http_header, _, 'Transfer-Encoding', _, Encoding}}, head = _StateName,
+		#statedata{socket = Socket, status_code = StatusCode,
+		head = Head} = StateData) when StatusCode >= 200, StatusCode < 300 ->
+	% @todo parse encoding type
+	NewStateData = StateData#statedata{expected_length = {chunk, undefined},
+			head = [{'Transfer-Encoding', Encoding} | Head]},
+	set_active(head, NewStateData);
+handle_info({http, Socket, {http_header, _, 'Content-Length', _, _}},
+		head = _StateName, #statedata{socket = Socket, status_code = StatusCode,
+		expected_length = {chunk, _}} = StateData) when StatusCode >= 200, StatusCode < 300 ->
+	set_active(head, StateData);
+handle_info({http, Socket,
 		{http_header, _, 'Content-Length', _, Length}}, head = _StateName,
 		#statedata{socket = Socket, method = 'HEAD',  status_code = StatusCode,
 		head = Head} = StateData) when StatusCode >= 200, StatusCode < 300 ->
@@ -246,6 +261,55 @@ handle_info({http, Socket, {http_error, HttpString}},
 			{module, ?MODULE}, {state, StateName},
 			{socket, Socket}, {error, HttpString}]),
 	{stop, HttpString, StateData};
+handle_info({tcp, Socket, Data}, body = _StateName,
+		#statedata{socket = Socket, body = undefined,
+		expected_length = {chunk, undefined}, buf = Buf} = StateData) ->
+	case binary:split(<<Buf/binary, Data/binary>>, <<$\r, $\n>>) of
+		[H | []] ->
+			NewStateData = StateData#statedata{buf = H},
+			set_active(body, NewStateData);
+		[H | [Rest]] ->
+			% @todo parse chunk-extension
+			[Hex | _Extensions] = binary:split(H, <<$;>>, [global]),
+			{ok, [ChunkSize], _} = io_lib:fread("~16u", binary_to_list(Hex)),
+			NewStateData = StateData#statedata{buf = <<>>,
+					expected_length = {chunk, ChunkSize}},
+			handle_info({tcp, Socket, Rest}, body, NewStateData)
+	end;
+handle_info({tcp, Socket, Data}, body = _StateName,
+		#statedata{socket = Socket, body = undefined,
+		expected_length = {chunk, 0}, buf = Buf, trailer = Trailer} = StateData) ->
+	NewBuf = <<Buf/binary, Data/binary>>,
+	case erlang:decode_packet(httph_bin, NewBuf, []) of
+		{ok, {http_header, _, HttpField, _, Value}, Rest} ->
+			NewStateData = StateData#statedata{buf = <<>>,
+					trailer = [{HttpField, Value} | Trailer]},
+			handle_info({tcp, Socket, Rest}, body, NewStateData);
+		{ok, http_eoh, Rest} ->
+			NewStateData = StateData#statedata{buf = Rest},
+			reply(NewStateData);
+		{more, _Length} ->
+			NewStateData = StateData#statedata{buf = NewBuf},
+			set_active(body, NewStateData);
+		{error, Reason} ->
+			{stop, Reason}
+	end;
+handle_info({tcp, Socket, Data}, body = _StateName,
+		#statedata{socket = Socket, body = undefined, queue = Queue,
+		expected_length = {chunk, ChunkSize}, buf = Buf} = StateData) ->
+	case <<Buf/binary, Data/binary>> of
+		<<>> ->
+			set_active(body, StateData);
+		<<Chunk:ChunkSize/binary, $\r, $\n, Rest/binary>> ->
+			{value, {Client, _Request, _Head, _Body}} = queue:peek(Queue), 
+			gen_fsm:send_event(Client, Chunk),
+			NewStateData = StateData#statedata{buf = <<>>,
+					expected_length = {chunk, undefined}},
+			handle_info({tcp, Socket, Rest}, body, NewStateData);
+		Rest ->
+			NewStateData = StateData#statedata{buf = Rest},
+			set_active(body, NewStateData)
+	end;
 handle_info({tcp, Socket, Body}, body = _StateName,
 		#statedata{socket = Socket, body = undefined,
 		expected_length = Length} = StateData)
@@ -320,9 +384,15 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 
 %% @hidden
 set_active(body, #statedata{socket = Socket,
-		expected_length = Length} = StateData) ->
-	case inet:setopts(Socket, [binary, {packet, raw}, {packet_size, Length},
-			{active, once}]) of
+		expected_length = {chunk, 0}} = StateData) ->
+	case inet:setopts(Socket, [binary, {packet, http_bin}, {active, once}]) of
+		ok ->
+			{next_state, body, StateData};
+		{error, Reason} ->
+			{stop, Reason, StateData}
+	end;
+set_active(body, #statedata{socket = Socket} = StateData) ->
+	case inet:setopts(Socket, [binary, {packet, raw}, {active, once}]) of
 		ok ->
 			{next_state, body, StateData};
 		{error, Reason} ->
@@ -345,19 +415,43 @@ set_active(NextState, Timeout, #statedata{socket = Socket} = StateData) ->
 	end.
 
 %% @hidden
+reply(#statedata{expected_length = {chunk, undefined}, queue = Queue,
+		status_code = StatusCode, status_string = StatusString,
+		head = Head, body = undefined} = StateData) ->
+	{value, {Client, _Request, _Head, _Body}} = queue:peek(Queue), 
+	Reply = #reply{status_code = StatusCode,
+			status_string = StatusString, head = Head},
+	gen_fsm:send_event(Client, Reply),
+	set_active(body, StateData);
+reply(#statedata{expected_length = {chunk, 0}, queue = Queue,
+		body = undefined, trailer = Trailer, clients = Clients} = StateData) ->
+	{{value, {Client, _Request, _Head, _Body}}, NewQueue} = queue:out(Queue), 
+	gen_fsm:send_event(Client, Trailer),
+	unlink(Client),
+	NewClients = lists:delete(Client, Clients),
+	NewStateData = StateData#statedata{queue = NewQueue, head = [],
+			body = undefined, trailer = [], expected_length = undefined,
+			status_code = undefined, status_string = undefined,
+			clients = NewClients},
+	case queue:is_empty(NewQueue) of
+		true ->
+			set_active(idle, 4000, NewStateData);
+		false ->
+			set_active(idle, 0, NewStateData)
+	end;
 reply(#statedata{queue = Queue, status_code = StatusCode,
 		status_string = StatusString, head = Head, body = Body,
 		clients = Clients} = StateData) ->
 	{{value, {Client, _Request, _Head, _Body}}, NewQueue} = queue:out(Queue), 
+	Reply = #reply{status_code = StatusCode, status_string = StatusString,
+			head = Head, body = Body},
+	gen_fsm:send_event(Client, Reply),
+	unlink(Client),
 	NewClients = lists:delete(Client, Clients),
 	NewStateData = StateData#statedata{queue = NewQueue,
 			head = [], body = undefined, expected_length = undefined,
 			status_code = undefined, status_string = undefined,
 			clients = NewClients},
-	Reply = #reply{status_code = StatusCode, status_string = StatusString,
-			head = Head, body = Body},
-	gen_fsm:send_event(Client, Reply),
-	unlink(Client),
 	case queue:is_empty(NewQueue) of
 		true ->
 			set_active(idle, 4000, NewStateData);
