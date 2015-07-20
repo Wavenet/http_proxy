@@ -252,6 +252,9 @@ handle_info({http, Socket, http_eoh}, head = _StateName,
 		#statedata{socket = Socket, expected_length = undefined} = StateData) ->
 	reply(StateData);
 handle_info({http, Socket, http_eoh}, head = _StateName,
+		#statedata{socket = Socket, expected_length = {chunk, _}} = StateData) ->
+	reply(StateData);
+handle_info({http, Socket, http_eoh}, head = _StateName,
 		#statedata{socket = Socket} = StateData) ->
 	set_active(body, StateData);
 handle_info({http, Socket, {http_error, HttpString}},

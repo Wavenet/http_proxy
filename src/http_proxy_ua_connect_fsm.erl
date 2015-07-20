@@ -28,7 +28,7 @@
 			terminate/3, code_change/4]).
 
 %% export the gen_fsm state callbacks
--export([request/2, head/2, body/2]).
+-export([request/2, head/2, body/2, chunk/2]).
 
 -record(statedata,
 		{socket :: inet:socket(),
@@ -40,7 +40,8 @@
 		expected_length :: pos_integer(),
 		queue = queue:new() :: queue:queue(http_request()),
 		server = "" :: string(),
-		origin_fsm :: pid()}).
+		origin_fsm :: pid(),
+		reply :: http_reply()}).
 
 %%----------------------------------------------------------------------
 %%  The http_proxy_ua_connect_fsm gen_server callbacks
@@ -67,7 +68,7 @@ init([Socket, Server] = _Args) when is_port(Socket) ->
 %% 	gen_fsm:send_event/2} in the <b>request</b> state.
 %% @private
 %%
-request(Event, StateData) ->
+request(#reply{} = Event, StateData) ->
 	handle_reply(Event, StateData).
 
 -spec head(Event :: timeout | term(), StateData :: #statedata{}) ->
@@ -93,6 +94,53 @@ head(#reply{} = Event, StateData) ->
 %%
 body(#reply{} = Event, StateData) ->
 	handle_reply(Event, StateData).
+
+-spec chunk(Event :: timeout | term(), StateData :: #statedata{}) ->
+	{next_state, NextStateName :: atom(), NewStateData :: #statedata{}}
+			| {next_state, NextStateName :: atom(), NewStateData :: #statedata{},
+				timeout() | hibernate}
+			| {stop, Reason :: term(), NewStateData :: #statedata{}}.
+%% @doc Handle events sent with {@link //stdlib/gen_fsm:send_event/2.
+%% 	gen_fsm:send_event/2} in the <b>chunk</b> state.
+%% @private
+%%
+chunk(Chunk, #statedata{socket = Socket, version = Version,
+		reply = #reply{status_code = StatusCode, head = Head,
+		body = undefined} = Reply} = StateData) when is_binary(Chunk) ->
+	Response = http_proxy_util:encode_response(Version, StatusCode, Head, []),
+	ChunkSize = io_lib:fwrite("~.16b~c~n", [size(Chunk), $\r]),
+	NewStateData = StateData#statedata{reply = Reply#reply{body = [Chunk]}},
+	case gen_tcp:send(Socket, [Response, ChunkSize, Chunk, <<$\r, $\n>>]) of
+		ok ->
+			{next_state, chunk, NewStateData};
+		{error, Reason} ->
+			{stop, Reason, NewStateData}
+	end;
+chunk(Chunk, #statedata{socket = Socket, reply = Reply} = StateData)
+		when is_binary(Chunk) ->
+	ChunkSize = io_lib:fwrite("~.16b~c~n", [size(Chunk), $\r]),
+	Body = [Chunk | Reply#reply.body],
+	NewStateData = StateData#statedata{reply = Reply#reply{body = Body}},
+	case gen_tcp:send(Socket, [ChunkSize, Chunk, <<$\r, $\n>>]) of
+		ok ->
+			{next_state, chunk, NewStateData};
+		{error, Reason} ->
+			{stop, Reason, NewStateData}
+	end;
+chunk(Trailer, #statedata{socket = Socket, version = Version} = StateData)
+		when is_list(Trailer) ->
+	case gen_tcp:send(Socket, [<<$0, $\r, $\n>>,
+			http_proxy_util:encode_head(Trailer), <<$\r, $\n>>]) of
+		ok ->
+			case Version of
+				{1, 1} ->
+					{next_state, request, StateData};
+				_ ->
+					{stop, normal, StateData}
+			end;
+		{error, Reason} ->
+			{stop, Reason, StateData}
+	end.
 
 -spec handle_event(Event :: term(), StateName :: atom(),
 		StateData :: #statedata{}) ->
@@ -406,13 +454,13 @@ forward(#statedata{request = Request, head = Head,
 
 %% @hidden
 handle_reply(#reply{status_code = StatusCode, status_string = StatusString,
-		head = Head, body = Body}, #statedata{version = Version} = StateData) ->
-	Response = http_proxy_util:encode_response(Version,
-			StatusCode, StatusString, Head, Body),
-	respond(Response, StateData);
-handle_reply(Chunk, StateData) when is_binary(Chunk) ->
-	% @todo chunk-size
-	respond(Chunk, StateData);
-handle_reply(Trailer, StateData) when is_list(Trailer) ->
-	respond(http_proxy_util:encode_head(Trailer), StateData).
+		head = Head, body = Body} = Reply, #statedata{version = Version} = StateData) ->
+	case lists:keyfind('Transfer-Encoding', 1, Head) of
+		{'Transfer-Encoding', <<"chunked">>} ->
+			{next_state, chunk, StateData#statedata{reply = Reply}};
+		_ ->
+			Response = http_proxy_util:encode_response(Version,
+					StatusCode, StatusString, Head, Body),
+			respond(Response, StateData)
+	end.
 
