@@ -5,7 +5,7 @@
 ## Boilerplate:  standard boilerplate code
 ##
 AC_INIT([http_proxy], [0.1], [issues@wavenet.lk])
-AC_COPYRIGHT([Copyright (c) 2013 Wavenet International (Pvt) Ltd])
+AC_COPYRIGHT([Copyright (c) 2013-2015 Global Wavenet (Pty) Ltd])
 AC_PREREQ(2.64)
 AC_LANG([Erlang])
 AC_CONFIG_SRCDIR([src/http_proxy_app.erl])

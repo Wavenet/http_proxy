@@ -1,58 +1,13 @@
-                             COPYRIGHT NOTICE
+Copyright 2013-2015 Global Wavenet (Pty) Ltd
 
-   Copyright 2013 Wavenet International (Pvt) Ltd., All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-   This computer program(s) is proprietary software and the intellectual
-   property of WAVENET INTERNATIONAL (PVT) LIMITED (hereinafter referred
-   to as "Wavenet").  Unless otherwise specified, all materials contained
-   in herein are copyrighted and may not be used except as provided in
-   these terms and conditions or in the copyright notice (documents and
-   software) or other proprietary notice provided with, or attached to,
-   the software or relevant document, or is otherwise referenced as 
-   applicable to the software.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-   Notice and Disclaimers
-
-      1. This is proprietary software.
-
-      2. Unless otherwise specified, all materials contained in herein
-         are copyrighted and may not be used except as provided in these
-         terms and conditions or in the copyright notice (documents and
-         software) or other proprietary notice provided with, or attached
-         to, the software or relevant document, or is otherwise referenced
-         as applicable to the software.
-
-      3. No part of this computer program(s) may be used, reproduced,
-         stored in any retrieval system, or transmitted, in any form or
-         by any means - electronic, mechanical, photocopying, recording,
-         or otherwise without prior written permission of
-         Wavenet.
-
-   Enforcement of Copyright
-
-      Wavenet takes copyright protection, or theft or violation of its
-      intellectual Property rights in any manner whatsoever, very seriously.
-
-      In the event of discovery by Wavenet of the use of any of its 
-      copyrighted software/material in contravention of the notice above
-      Wavenet will pursue prosecution under the fullest extent of the law
-      and may seek monetary damages and any other injunctive relief 
-      permitted under the law.
-
-      If you become aware of any infringement of the intellectual property
-      rights of Wavenet please report same immediately by email to 
-      <legal@wavenet.lk>, or by fax to +94117526099 or by post to the 
-      address below.
-
-   Wavenet International (Pvt) Limited,
-   No. 141/6, Vauxhall Street, 
-   Colombo 2,
-   Sri Lanka.
-
-   Infringing Material
-
-      If you become aware of any material herein which you believe
-      infringes on any other person's or entity’s copyright please report
-      this by email, or by fax or by post to Wavenet as mentioned above.
-
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

@@ -1,3 +1,17 @@
+%%% http_get_SUITE.erl
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%  @author Vance Shipley <vance@wavenet.lk>
+%%%  @copyright 2013 Wavenet International (Pvt) Ltd.
+%%%  @end
+%%%  This computer program(s) is proprietary software and the intellectual
+%%%  property of WAVENET INTERNATIONAL (PVT) LIMITED (hereinafter referred
+%%%  to as "Wavenet").  Unless otherwise specified, all materials contained
+%%%  in herein are copyrighted and may not be used except as provided in 
+%%%  these terms and conditions or in the copyright notice (documents and
+%%%  software) or other proprietary notice provided with, or attached to,
+%%%  the software or relevant document, or is otherwise referenced as 
+%%%  applicable to the software.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -module(http_get_SUITE).
 
 -compile(export_all).
