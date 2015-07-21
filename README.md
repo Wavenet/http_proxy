@@ -37,6 +37,7 @@ through pg2.  An FSM is spawned for the connection to the origin server.
 ### Supervision Heirarchy
 ![supervision tree](doc/supervision.png)
 
+### Messaging
 An accept server handles opening a TCP connection from a UA and hands the
 socket off to the UA connect FSM.  The UA connect FSM reads the HTTP
 request from the socket and sends it to an origin server process which
@@ -45,7 +46,6 @@ The origin connect FSM process opens a socket and sends the request to
 the actual origin server. A reply is sent directly to the UA connect FSM
 which sends it to the socket of the UA connection.
 
-### Messaging
 ![messaging](doc/messaging.png)
 
 ## License
