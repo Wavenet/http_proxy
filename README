@@ -1,0 +1,41 @@
+This package is built with the GNU Build System.  A good reference
+for the whole process is at:
+
+	http://sources.redhat.com/autobook/autobook/autobook.html#SEC_Top
+
+
+The manuals are here:
+
+	http://www.gnu.org/manual/automake/html_mono/automake.html
+	http://www.gnu.org/manual/autoconf/html_mono/autoconf.html
+
+
+Requirements:
+
+	You'll need the following GNU tools:
+		autoconf, automake, make, m4, perl, gcc
+
+
+Making changes:
+
+	The only files which should (theoretically) be edited are:
+		configure.ac & Makefile.am
+
+
+Building:
+
+	aclocal                   (creates aclocal.m4)
+	autoheader                (creates config.h.in)
+	autoconf                  (creates configure & autom4te.cache)
+	automake --add-missing    (creates Makefile.in)
+	[Note:  you should be able to run autoreconf to do all 
+	        the above afterwards when changes are made]
+
+	./configure               (creates Makefile)
+	make                      (builds entire package)
+   make check                (runs common_test and dialyzer)
+
+Options:
+
+	./configure --enable-debug
+
