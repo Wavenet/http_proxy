@@ -42,5 +42,5 @@ CLEANFILES = overview.edoc edoc-info index.html \
 		modules-frame.html overview-summary.html packages-frame.html \
 		stylesheet.css erlang.png $(modhtml)
 
-INSTALL += -o otpuser -g otp
+#INSTALL += -o otpuser -g otp
 
